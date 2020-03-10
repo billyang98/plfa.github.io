@@ -7,7 +7,7 @@ next      : /Equality/
 ---
 
 ```
-module plfa.part1.Relations_solutions where
+module plfa.part1.RelationsExercises-solution-peer where
 ```
 
 After having defined operations such as addition and multiplication,
@@ -17,9 +17,9 @@ the next step is to define relations, such as _less than or equal_.
 
 ```
 import Relation.Binary.PropositionalEquality as Eq
-open Eq using (_≡_; refl; cong; sym)
-open import Data.Nat using (ℕ; zero; suc; _+_)
-open import Data.Nat.Properties using (+-comm)
+open Eq using (_≡_; refl; cong)
+open import Data.Nat using (ℕ; zero; suc; _+_; _*_)
+open import Data.Nat.Properties using (+-comm; *-comm)
 ```
 
 
@@ -538,36 +538,35 @@ Invoking `+-monoˡ-≤ m n p m≤n` proves `m + p ≤ n + p` and invoking
 transitivity proves `m + p ≤ n + q`, as was to be shown.
 
 
-#### Exercise `*-mono-≤` (stretch) ****HOMEWORK****
+#### Exercise `*-mono-≤` (stretch)
 
 Show that multiplication is monotonic with regard to inequality.
 
 ```
 -- Your code goes here
-open import Data.Nat using (ℕ; zero; suc; _+_; _*_; _∸_)
-open import Data.Nat.Properties using (*-comm)
-*-monoʳ-≤ : ∀ (n p q : ℕ)
+*-monoˡ-≤ : ∀ (m p q : ℕ)
   → p ≤ q
-    -------------
-  → n * p ≤ n * q
-*-monoʳ-≤ zero    p q p≤q  =  z≤n
-*-monoʳ-≤ (suc n) p q p≤q  = +-mono-≤ p q (n * p) (n * q) p≤q (*-monoʳ-≤ n p q p≤q)
+  ----------
+  → m * p ≤ m * q
 
-*-monoˡ-≤ : ∀ (m n p : ℕ)
-  → m ≤ n
-    -------------
-  → m * p ≤ n * p
-*-monoˡ-≤ m n p m≤n rewrite *-comm m p | *-comm n p = *-monoʳ-≤ p m n m≤n
+*-monoˡ-≤ zero _ _ _ = z≤n
+*-monoˡ-≤ (suc m) p q p≤q = +-mono-≤ p q (m * p) (m * q) p≤q (*-monoˡ-≤ m p q p≤q)
+
+*-monoʳ-≤ : ∀ (m p q : ℕ)
+  → p ≤ q
+  ----------
+  → p * m ≤ q * m
+
+*-monoʳ-≤ m p q p≤q rewrite *-comm p m | *-comm q m = *-monoˡ-≤ m p q p≤q
 
 *-mono-≤ : ∀ (m n p q : ℕ)
   → m ≤ n
   → p ≤ q
-    -------------
+  ------------
   → m * p ≤ n * q
-*-mono-≤ m n p q m≤n p≤q = ≤-trans (*-monoˡ-≤ m n p m≤n) (*-monoʳ-≤ n p q p≤q)
+
+*-mono-≤ m n p q m≤n p≤q  =  ≤-trans (*-monoʳ-≤ p m n m≤n) (*-monoˡ-≤ n p q p≤q)
 ```
-suc n * p ≤ suc n * q
-p + n * p ≤ q + n * q
 
 
 ## Strict inequality {#strict-inequality}
@@ -608,26 +607,22 @@ and conversely.  One can then give an alternative derivation of the
 properties of strict inequality, such as transitivity, by
 exploiting the corresponding properties of inequality.
 
-#### Exercise `<-trans` (recommended) {#less-trans} ****HOMEWORK****
+#### Exercise `<-trans` (recommended) {#less-trans}
 
 Show that strict inequality is transitive.
 
 ```
 -- Your code goes here
-<-trans : ∀ {n p q : ℕ}
+<-trans : ∀ {m n p : ℕ}
+  → m < n
   → n < p
-  → p < q
-    -------------
-  → n < q
-<-trans z<s (s<s p<q) = z<s
-<-trans (s<s n<p) (s<s p<q) = s<s (<-trans n<p p<q)
+    -----
+  → m < p
+<-trans z<s (s<s n<p) = z<s
+<-trans (s<s m<n) (s<s n<p) = s<s (<-trans m<n n<p)
 ```
-zero < p
-1 < suc p
 
-
-
-#### Exercise `trichotomy` (practice) {#trichotomy} ****HOMEWORK****
+#### Exercise `trichotomy` (practice) {#trichotomy}
 
 Show that strict inequality satisfies a weak version of trichotomy, in
 the sense that for any `m` and `n` that one of the following holds:
@@ -643,89 +638,65 @@ similar to that used for totality.
 
 ```
 -- Your code goes here
-data Trichotomy (m n : ℕ) : Set where
+data trichotomy (m n : ℕ) : Set  where
 
-  less :
+  forward :
       m < n
-      ---------
-    → Trichotomy m n
-
-  greater :
-      n < m
-      ---------
-    → Trichotomy m n
+      -------
+    → trichotomy m n
 
   equal :
       m ≡ n
-      --------
-    → Trichotomy m n
+      -------
+    → trichotomy m n  
 
-<-trichotomy : ∀ (m n : ℕ) → Trichotomy m n
-<-trichotomy zero (suc n)  = less z<s
-<-trichotomy (suc m) zero = greater z<s
+  flipped :
+      n < m
+      -------
+    → trichotomy m n
+
+<-trichotomy : ∀ (m n : ℕ) → trichotomy m n
 <-trichotomy zero zero = equal refl
+<-trichotomy zero (suc n) = forward z<s
+<-trichotomy (suc m) zero = flipped z<s
 <-trichotomy (suc m) (suc n) with <-trichotomy m n
-... | less m<n = less (s<s m<n)
-... | greater n<m = greater (s<s n<m)
-... | equal m≡n = equal (cong suc m≡n)
+... | forward m<n = forward (s<s m<n)
+... | equal   m≡n = equal (cong suc m≡n)
+... | flipped n<m = flipped (s<s n<m)
 ```
 
-#### Exercise `+-mono-<` (practice) {#plus-mono-less} ****HOMEWORK****
+#### Exercise `+-mono-<` (practice) {#plus-mono-less}
 
 Show that addition is monotonic with respect to strict inequality.
 As with inequality, some additional definitions may be required.
 
 ```
 -- Your code goes here
-+-monoʳ-< : ∀ (n p q : ℕ)
-  → p < q
-    -------------
-  → n + p < n + q
-+-monoʳ-< zero    p q p<q  =  p<q
-+-monoʳ-< (suc n) p q p<q  =  s<s (+-monoʳ-< n p q p<q)
++-monoʳ-< : ∀ (n p q : ℕ) -> p < q -> n + p < n + q
++-monoʳ-< zero p q p<q = p<q
++-monoʳ-< (suc n) p q p<q = s<s (+-monoʳ-< n p q p<q)
 
-+-monoˡ-< : ∀ (m n p : ℕ)
-  → m < n
-    -------------
-  → m + p < n + p
-+-monoˡ-< m n p m<n  rewrite +-comm m p | +-comm n p  = +-monoʳ-< p m n m<n
++-monoˡ-< : ∀ (m n p : ℕ) -> m < n -> m + p < n + p
++-monoˡ-< m n p m<n rewrite +-comm m p | +-comm n p = +-monoʳ-< p m n m<n
 
-+-mono-< : ∀ (m n p q : ℕ)
-  → m < n
-  → p < q
-    -------------
-  → m + p < n + q
-+-mono-< m n p q m<n p<q  =  <-trans (+-monoˡ-< m n p m<n) (+-monoʳ-< n p q p<q)
++-mono-< : ∀ (m n p q : ℕ) -> m < n -> p < q -> m + p < n + q
++-mono-< m n p q m<n p<q = <-trans (+-monoˡ-< m n p m<n) (+-monoʳ-< n p q p<q)
 ```
 
-#### Exercise `≤-iff-<` (recommended) {#leq-iff-less} ****HOMEWORK****
+#### Exercise `≤-iff-<` (recommended) {#leq-iff-less}
 
 Show that `suc m ≤ n` implies `m < n`, and conversely.
 
 ```
 -- Your code goes here
-≤-to-< : ∀ {m n : ℕ}
-  → suc m ≤ n
-  -----
-  → m < n
-≤-to-< {zero} {suc n} sm≤n = z<s
-≤-to-< {suc m} {suc n} (s≤s sm≤n) = s<s (≤-to-< sm≤n)
+≤-iff-<1 : ∀ {m n : ℕ} -> suc m ≤ n -> m < n
+≤-iff-<1 {zero} {suc n} (s≤s (m≤n)) = z<s
+≤-iff-<1 {suc m} {suc n} (s≤s (m≤n)) = s<s (≤-iff-<1 {m} {n} m≤n)
 
-<-to-≤ : ∀ {m n : ℕ}
-  → m < n
-  -----
-  → suc m ≤ n
-<-to-≤ {zero} {suc n} m<n = s≤s z≤n
-<-to-≤ {suc m} {suc n} (s<s m<n) = s≤s (<-to-≤ m<n)
+≤-iff-<2 : ∀ {m n : ℕ} -> m < n -> suc m ≤ n
+≤-iff-<2 z<s = s≤s (z≤n)
+≤-iff-<2 (s<s (m<n)) = s≤s (≤-iff-<2 m<n)
 ```
-suc suc m <= suc n
-suc m ≤ n
-m < n
-suc m < suc n
-
-suc m < suc n
-
-
 
 #### Exercise `<-trans-revisited` (practice) {#less-trans-revisited}
 
@@ -836,24 +807,29 @@ evidence that the first number is odd. If it is because it is the
 successor of an even number, then the result is odd because it is the
 successor of the sum of two even numbers, which is even.
 
-#### Exercise `o+o≡e` (stretch) {#odd-plus-odd} ****HOMEWORK****
+#### Exercise `o+o≡e` (stretch) {#odd-plus-odd}
 
 Show that the sum of two odd numbers is even.
 
 ```
 -- Your code goes here
-o+o≡e : ∀ { m n : ℕ }
+e+o≡o : ∀ {m n : ℕ}
+  → even m
+  → odd n
+    -----------
+  → odd (m + n)
+
+o+o≡e : ∀ {m n : ℕ}
   → odd m
   → odd n
-  --------
+    ------------
   → even (m + n)
-o+o≡e {suc m} {n} (suc em) (on) rewrite +-comm m n = suc (o+e≡o on em)
-```
-(suc em) + on
-suc (em + on)
-suc (on + em)
-suc (odd)
 
+e+o≡o zero     on = on
+e+o≡o (suc om) on = suc (o+o≡e om on)
+
+o+o≡e (suc em) on = suc (e+o≡o em on)
+```
 
 #### Exercise `Bin-predicates` (stretch) {#Bin-predicates}
 
@@ -901,8 +877,7 @@ and back is the identity:
     to (from b) ≡ b
 
 (Hint: For each of these, you may first need to prove related
-properties of `One`. Also, you may need to prove that `1` is
-less or equal to the result of `from b`.)
+properties of `One`.)
 
 ```
 -- Your code goes here
