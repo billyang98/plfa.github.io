@@ -103,8 +103,11 @@ if no A then a else b = b
 
 sqrt : ℕ → ℕ
 
+rt_sub_ : ℕ → ℕ → ℕ
+rt_sub_ n  sqrtn = if ((suc n) <? (((sqrtn) + 1) ^ 2)) then (sqrtn) else ((sqrtn) + 1)
+
 sqrt 0 = 0
-sqrt (suc n) = if ((suc n) <? (((sqrt n) + 1) ^ 2)) then (sqrt n) else ((sqrt n) + 1)
+sqrt (suc n) = rt n sub (sqrt n)
 
 -- you can run these test cases
 _ : sqrt 0 ≡ 0
@@ -129,42 +132,48 @@ _ : sqrt 9 ≡ 3
 _ = refl
 _ : sqrt 10 ≡ 3
 _ = refl
---- _ : sqrt 11 ≡ 3
---- _ = refl
---- _ : sqrt 12 ≡ 3
---- _ = refl
---- _ : sqrt 13 ≡ 3
---- _ = refl
---- _ : sqrt 14 ≡ 3
---- _ = refl
---- _ : sqrt 15 ≡ 3
---- _ = refl
---- _ : sqrt 16 ≡ 4
---- _ = refl
---- _ : sqrt 17 ≡ 4
---- _ = refl
---- _ : sqrt 18 ≡ 4
---- _ = refl
---- _ : sqrt 19 ≡ 4
---- _ = refl
---- _ : sqrt 20 ≡ 4
---- _ = refl
---- _ : sqrt 21 ≡ 4
---- _ = refl
---- _ : sqrt 22 ≡ 4
---- _ = refl
---- _ : sqrt 23 ≡ 4
---- _ = refl
---- _ : sqrt 24 ≡ 4
---- _ = refl
---- _ : sqrt 24 ≡ 4
---- _ = refl
---- _ : sqrt 24 ≡ 4
---- _ = refl
---- _ : sqrt 25 ≡ 5
---- _ = refl
---- _ : sqrt 26 ≡ 5
---- _ = refl
---- _ : sqrt 27 ≡ 5
---- _ = refl
+_ : sqrt 11 ≡ 3
+_ = refl
+_ : sqrt 12 ≡ 3
+_ = refl
+_ : sqrt 13 ≡ 3
+_ = refl
+_ : sqrt 14 ≡ 3
+_ = refl
+_ : sqrt 15 ≡ 3
+_ = refl
+_ : sqrt 16 ≡ 4
+_ = refl
+_ : sqrt 17 ≡ 4
+_ = refl
+_ : sqrt 18 ≡ 4
+_ = refl
+_ : sqrt 19 ≡ 4
+_ = refl
+_ : sqrt 20 ≡ 4
+_ = refl
+_ : sqrt 21 ≡ 4
+_ = refl
+_ : sqrt 22 ≡ 4
+_ = refl
+_ : sqrt 23 ≡ 4
+_ = refl
+_ : sqrt 24 ≡ 4
+_ = refl
+_ : sqrt 24 ≡ 4
+_ = refl
+_ : sqrt 24 ≡ 4
+_ = refl
+_ : sqrt 25 ≡ 5
+_ = refl
+_ : sqrt 26 ≡ 5
+_ = refl
+_ : sqrt 27 ≡ 5
+_ = refl
+
+
+_ : sqrt 100 ≡ 10
+_ = refl
+_ : sqrt 101 ≡ 10
+_ = refl
 
