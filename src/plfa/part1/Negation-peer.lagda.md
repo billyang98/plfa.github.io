@@ -7,7 +7,7 @@ next      : /Quantifiers/
 ---
 
 ```
-module plfa.part1.Negation where
+module plfa.part1.Negation-peer where
 ```
 
 This chapter introduces negation, and discusses intuitionistic
@@ -101,7 +101,7 @@ We cannot show that `¬ ¬ A` implies `A`, but we can show that
 ¬¬¬-elim : ∀ {A : Set}
   → ¬ ¬ ¬ A
     -------
-  → ¬ A
+    → ¬ A
 ¬¬¬-elim ¬¬¬x  =  λ x → ¬¬¬x (¬¬-intro x)
 ```
 Let `¬¬¬x` be evidence of `¬ ¬ ¬ A`. We will show that assuming
