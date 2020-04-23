@@ -1334,6 +1334,52 @@ Show that `All P xs` is isomorphic to `∀ {x} → x ∈ xs → P x`.
 ```
 -- You code goes here
 
+All-∀-to : ∀ {A : Set} (P : A → Set) (xs : List A )
+  → All P xs → (∀ {x} → x ∈ xs → P x)
+All-∀-to P [] [] ()
+All-∀-to P (x ∷ xs) (px ∷ pxs) x∈x∷xs with x∈x∷xs
+... | here Px rewrite Px = px
+... | there Px = All-∀-to P xs pxs Px
+
+All-∀-from : ∀ {A : Set} (P : A → Set) (xs : List A )
+  → (∀ {x} → x ∈ xs → P x) → All P xs
+All-∀-from P [] _ = []
+All-∀-from {A} P (x ∷ xs) px = (px (here refl)) ∷ All-∀-from P xs (λ x∈ → px (there x∈))
+
+All-∀-from∘to : ∀ {A : Set} (P : A → Set) (xs : List A )
+  → (x : All P xs) → All-∀-from P xs (All-∀-to P xs x) ≡ x
+All-∀-from∘to P [] [] = refl
+All-∀-from∘to P (x ∷ xs) (px ∷ pxs) rewrite All-∀-from∘to P xs pxs = refl
+
+postulate
+ qextensionality : ∀ {C : Set} {A : C → Set}
+   {B : {y : C} → A y → Set}
+   {f g : {y : C} → (x : A y) → B {y} x}
+   → (∀ {y : C} (x : A y) → f {y} x ≡ g {y} x)
+   -----------------------
+   → (λ {y} → f {y}) ≡ g
+All-∀-to∘from : ∀ {A : Set} {P : A → Set} (xs : List A)
+ → (x∈→Px : {x : A} → x ∈ xs → P x)
+ → (λ {x} → All-∀-to P xs (All-∀-from P xs x∈→Px) {x}) ≡ x∈→Px
+All-∀-to∘from {A}{P} xs x∈→Px = qextensionality (G xs x∈→Px)
+ where
+  G : (xs : List A) (x∈→Px : {x : A} → x ∈ xs → P x)
+      {y : A} (y∈ : y ∈ xs) →
+      All-∀-to P xs (All-∀-from P xs x∈→Px) y∈ ≡ x∈→Px y∈
+  G [] x∈xspx ()
+  G (x ∷ xs) x∈→xspx = λ { (here refl) → refl
+                         ; (there px) → G xs {!!}  px
+                         }
+ 
+All-∀ : ∀ {A : Set} (P : A → Set) (xs : List A )
+  → All P xs ≃ (∀ {x} → x ∈ xs → P x)
+All-∀ P xs = record
+  { to = All-∀-to P xs
+  ; from = All-∀-from P xs  
+  ; from∘to = All-∀-from∘to P xs
+  ; to∘from = All-∀-to∘from xs
+  }
+
 ```
 
 
@@ -1343,6 +1389,48 @@ Show that `Any P xs` is isomorphic to `∃[ x ] (x ∈ xs × P x)`.
 
 ```
 -- You code goes here
+Any-∃-x∷xs : ∀ {A : Set} (P : A → Set) (xs : List A ) (y : A)
+  →  (∃[ x ] (x ∈ xs × P x)) → (∃[ x ] (x ∈ y ∷ xs × P x))
+Any-∃-x∷xs P xs y ⟨ x , ⟨ x∈ , px ⟩ ⟩ = ⟨ x  , ⟨ there x∈ , px ⟩ ⟩ 
+
+
+Any-∃-to : ∀ {A : Set} (P : A → Set) (xs : List A )
+  → Any P xs → (∃[ x ] (x ∈ xs × P x))
+Any-∃-to P [] ()
+Any-∃-to P (x ∷ xs) AnyP with AnyP
+... | here Px =  ⟨ x , ⟨ here refl , Px ⟩  ⟩
+... | there Pxs = Any-∃-x∷xs P xs x (Any-∃-to P xs Pxs)
+
+Any-∃-from : ∀ {A : Set} (P : A → Set) (xs : List A )
+  → (∃[ x ] (x ∈ xs × P x)) → Any P xs
+Any-∃-from P [] ⟨ x , ⟨ () , px ⟩ ⟩
+Any-∃-from P (y ∷ ys) ⟨ x , ⟨ x∈x∷xs , px ⟩ ⟩ with x∈x∷xs
+... | here x∈ rewrite x∈ =  here px
+... | there x∈ = there (Any-∃-from P ys ⟨ x , ⟨ x∈ , px ⟩ ⟩)
+
+Any-∃-fromto : ∀ {A : Set} (P : A → Set) (xs : List A)
+  → (x : Any P xs)
+  → Any-∃-from P xs (Any-∃-to P xs x) ≡ x
+Any-∃-fromto P [] ()
+Any-∃-fromto P (y ∷ ys) AnyP with AnyP
+... | here Py = refl
+... | there Pys rewrite Any-∃-fromto P ys Pys = refl 
+
+Any-∃-tofrom : ∀ {A : Set} (P : A → Set) (xs : List A)
+    → (∃x∈xsPx : ∃[ x ] (x ∈ xs × P x))
+    → Any-∃-to P xs (Any-∃-from P xs ∃x∈xsPx) ≡ ∃x∈xsPx
+Any-∃-tofrom P [] ()
+Any-∃-tofrom P (y ∷ ys) ⟨ x , ⟨ here refl , Px ⟩ ⟩ = refl
+Any-∃-tofrom P (y ∷ ys) ⟨ x , ⟨ there x∈ys , Px ⟩ ⟩ rewrite Any-∃-tofrom P ys ⟨ x , ⟨ x∈ys , Px ⟩ ⟩ = refl
+
+Any-∃ : ∀ {A : Set} (P : A → Set) (xs : List A )
+  → Any P xs ≃ (∃[ x ] (x ∈ xs × P x))
+Any-∃ P xs = record
+  { to = Any-∃-to P xs
+  ; from = Any-∃-from P xs
+  ; from∘to = Any-∃-fromto P xs
+  ; to∘from = Any-∃-tofrom P xs
+  }
 ```
 
 
